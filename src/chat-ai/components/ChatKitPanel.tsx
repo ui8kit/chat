@@ -415,8 +415,15 @@ export function ChatKitPanel({
   }
 
   return (
-    <div className="relative pb-8 flex h-[90vh] w-full rounded-3xl flex-col overflow-hidden bg-gradient-to-br from-white via-white to-slate-50 shadow-2xl shadow-slate-200/50 border border-slate-200/60 backdrop-blur-sm transition-all duration-500 ease-out dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 dark:shadow-slate-900/50 dark:border-slate-700/60 hover:shadow-3xl hover:shadow-slate-300/30 dark:hover:shadow-slate-900/70">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-purple-50/20 dark:from-blue-900/10 dark:via-transparent dark:to-purple-900/10 rounded-3xl pointer-events-none" />
+    <div
+      className="relative pb-8 flex h-[90vh] w-full rounded-3xl flex-col overflow-hidden border transition-all duration-300 ease-out"
+      style={{
+        background: "var(--color-card)",
+        color: "var(--color-foreground)",
+        borderColor: "var(--color-border)",
+        boxShadow: "var(--shadow-xl)",
+      }}
+    >
       <div className="relative z-10 flex flex-col h-full">
         <ChatKit
           key={widgetInstanceKey}
