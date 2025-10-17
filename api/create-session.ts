@@ -13,11 +13,11 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const openaiApiKey = (process.env.OPENAI_API_KEY || "").trim();
+  const openaiApiKey = (process.env.VITE_OPENAI_API_KEY || "").trim();
   if (!openaiApiKey) {
     res.statusCode = 500;
     res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ error: "Missing OPENAI_API_KEY environment variable" }));
+    res.end(JSON.stringify({ error: "Missing VITE_OPENAI_API_KEY environment variable" }));
     return;
   }
 

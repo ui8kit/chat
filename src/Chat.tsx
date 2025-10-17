@@ -3,7 +3,7 @@ import { useState, useCallback } from "react";
 import type { ColorScheme } from "@openai/chatkit";
 import { ChatKitPanel } from "@/chat-ai/components/ChatKitPanel";
 
-export function Blank() {
+export function Chat() {
   const [scheme, setScheme] = useState<ColorScheme>("dark");
   const selectedWorkflowId = "wf_68ea5c2540d48190858e868cf48a050201e47c9c2f133b23";
 

@@ -12,9 +12,7 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@ui8kit/chat": ["../../packages/@ui8kit/chat/src"],
-      "@ui8kit/chat/*": ["../../packages/@ui8kit/chat/src/*"]
+      "@/*": ["src/*"]
     }
 
   },
