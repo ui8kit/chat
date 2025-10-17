@@ -44,7 +44,7 @@
     "lint:fix": "eslint src --ext .ts,.tsx --fix"
   },
   "dependencies": {
-    "@ui8kit/chat": "workspace:*",
+    "@ui8kit/core": "^0.1.7-b",
     "lucide-react": "^0.460.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
