@@ -36,11 +36,6 @@ type ErrorState = {
 
 const isBrowser = typeof window !== "undefined";
 const isDev = import.meta.env.DEV;
-const CHATKIT_CDN_SRC =
-  "https://cdn.platform.openai.com/deployments/chatkit/chatkit.js";
-const CHATKIT_SCRIPT_SRC = import.meta.env.PROD
-  ? "/api/chatkit.js"
-  : CHATKIT_CDN_SRC;
 
 const createInitialErrors = (): ErrorState => ({
   script: null,
@@ -60,9 +55,7 @@ export function ChatKitPanel({
   const [errors, setErrors] = useState<ErrorState>(() => createInitialErrors());
   const [isInitializingSession, setIsInitializingSession] = useState(true);
   const isMountedRef = useRef(true);
-  const [scriptStatus, setScriptStatus] = useState<
-    "pending" | "ready" | "error"
-  >(() =>
+  const [scriptStatus, setScriptStatus] = useState<"pending" | "ready" | "error">(() =>
     isBrowser && (window as typeof window & { customElements?: CustomElementRegistry }).customElements?.get("openai-chatkit")
       ? "ready"
       : "pending"
@@ -80,116 +73,26 @@ export function ChatKitPanel({
   }, []);
 
   useEffect(() => {
-    if (!isBrowser) {
-      return;
-    }
-
-    let timeoutId: number | undefined;
-
-    const handleLoaded = () => {
-      if (!isMountedRef.current) {
-        return;
-      }
+    if (!isBrowser) return;
+    // If the custom element is already registered, we are ready.
+    if ((window as typeof window & { customElements?: CustomElementRegistry }).customElements?.get("openai-chatkit")) {
       setScriptStatus("ready");
       setErrorState({ script: null });
-    };
-
-    const handleError = (event: Event) => {
-      console.error("Failed to load chatkit.js for some reason", event);
-      if (!isMountedRef.current) {
-        return;
-      }
-      setScriptStatus("error");
-      const detail = (event as CustomEvent<unknown>)?.detail ?? "unknown error";
-      setErrorState({ script: `Error: ${String(detail)}`, retryable: true });
-      setIsInitializingSession(false);
-    };
-
-    window.addEventListener("chatkit-script-loaded", handleLoaded);
-    window.addEventListener(
-      "chatkit-script-error",
-      handleError as EventListener
-    );
-
-    // Ensure the script tag exists; if not, inject it
-    let createdScript: HTMLScriptElement | null = null;
-    try {
-      const head = document.head || document.getElementsByTagName("head")[0];
-      const hasElement = Boolean((window as typeof window & { customElements?: CustomElementRegistry }).customElements?.get("openai-chatkit"));
-      const existingScript = (document.querySelector(
-        '#chatkit-loader, script[src="' + CHATKIT_SCRIPT_SRC + '"]'
-      ) as HTMLScriptElement | null) ?? null;
-      if (!hasElement && !existingScript) {
-        const s = document.createElement("script");
-        s.id = "chatkit-loader";
-        s.src = CHATKIT_SCRIPT_SRC;
-        s.async = true;
-        s.addEventListener("load", handleLoaded);
-        s.addEventListener("error", handleError as EventListener);
-        head.appendChild(s);
-        createdScript = s;
-      }
-    } catch (_) {
-      // ignore DOM/script injection errors
+      return;
     }
-
-    // Proactively wait until the custom element is defined, if supported.
-    try {
-      const registry = (window as typeof window & { customElements?: CustomElementRegistry }).customElements;
-      if (
-        registry &&
-        typeof registry.whenDefined === "function" &&
-        !registry.get("openai-chatkit")
-      ) {
-        void registry
-          .whenDefined("openai-chatkit")
-          .then(() => {
-            if (isMountedRef.current) {
-              handleLoaded();
-            }
-          })
-          .catch(() => {
-            // ignore; fallback timeout below will surface an error if needed
-          });
+    // Fallback: wait briefly for the global script to register the element.
+    const timer = window.setTimeout(() => {
+      if ((window as typeof window & { customElements?: CustomElementRegistry }).customElements?.get("openai-chatkit")) {
+        setScriptStatus("ready");
+        setErrorState({ script: null });
+      } else {
+        setScriptStatus("error");
+        setErrorState({ script: "ChatKit web component is unavailable. Verify that the script URL is reachable.", retryable: false });
+        setIsInitializingSession(false);
       }
-    } catch (_) {
-      // ignore feature detection errors
-    }
-
-    if ((window as typeof window & { customElements?: CustomElementRegistry }).customElements?.get("openai-chatkit")) {
-      handleLoaded();
-    } else if (scriptStatus === "pending") {
-      timeoutId = window.setTimeout(() => {
-        if (!(window as typeof window & { customElements?: CustomElementRegistry }).customElements?.get("openai-chatkit")) {
-          handleError(
-            new CustomEvent("chatkit-script-error", {
-              detail:
-                "ChatKit web component is unavailable. Verify that the script URL is reachable.",
-            })
-          );
-        }
-      }, 5000);
-    }
-
-    return () => {
-      window.removeEventListener("chatkit-script-loaded", handleLoaded);
-      window.removeEventListener(
-        "chatkit-script-error",
-        handleError as EventListener
-      );
-      try {
-        if (createdScript) {
-          createdScript.removeEventListener("load", handleLoaded);
-          createdScript.removeEventListener("error", handleError as EventListener);
-        }
-      } catch (_) {
-        // ignore
-      }
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [scriptStatus, setErrorState]);
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [setErrorState]);
 
   const envConfigured = Boolean(
     WORKFLOW_ID && !WORKFLOW_ID.startsWith("wf_replace")
