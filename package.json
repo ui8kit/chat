@@ -44,6 +44,8 @@
     "lint:fix": "eslint src --ext .ts,.tsx --fix"
   },
   "dependencies": {
+    "@openai/chatkit": "^1.0.0",
+    "@openai/chatkit-react": "^1.1.1",
     "@ui8kit/core": "^0.1.7-b",
     "lucide-react": "^0.460.0",
     "react": "^19.1.0",
@@ -53,6 +55,7 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.9",
     "@tailwindcss/postcss": "^4.1.13",
+    "@types/node": "^24.8.1",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react-swc": "^3.11.0",
