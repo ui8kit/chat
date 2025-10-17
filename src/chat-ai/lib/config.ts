@@ -51,23 +51,17 @@ export function resolveWorkflowId(input: string | null | undefined): string {
 export const getThemeConfig = (theme: ColorScheme): ThemeOption => {
   const tokens = getDesignTokensFromCss();
   return {
+    colorScheme: theme,
     color: {
-      grayscale: {
-        hue: 220,
-        tint: 6,
-        shade: theme === "dark" ? -1 : -4,
-      },
+      // Keep theming minimal so widget follows app tokens
       accent: {
-        primary: tokens.primary ?? (theme === "dark" ? "#f1f5f9" : "#0f172a"),
+        primary: tokens.primary || (theme === "dark" ? "#f1f5f9" : "#0f172a"),
         level: 1,
       },
     },
     radius: "round",
-    colorScheme: theme,
     density: "normal",
-    typography: {
-      baseSize: 15,
-    },
+    typography: { baseSize: 15 },
   };
 };
 
@@ -75,66 +69,13 @@ function getDesignTokensFromCss(): { primary: string | null; background: string 
   try {
     if (typeof window === "undefined") return { primary: null, background: null, foreground: null };
     const style = getComputedStyle(document.documentElement);
-    const primary = normalizeCssColor(style.getPropertyValue("--primary"));
-    const background = normalizeCssColor(style.getPropertyValue("--background"));
-    const foreground = normalizeCssColor(style.getPropertyValue("--foreground"));
+    const primary = (style.getPropertyValue("--primary").trim()) || null;
+    const background = (style.getPropertyValue("--background").trim()) || null;
+    const foreground = (style.getPropertyValue("--foreground").trim()) || null;
     return { primary, background, foreground };
   } catch {
     return { primary: null, background: null, foreground: null };
   }
-}
-
-function normalizeCssColor(value: string | null | undefined): string | null {
-  const raw = (value ?? "").trim();
-  if (!raw) return null;
-  if (raw.startsWith("#")) return raw;
-  if (raw.startsWith("hsl")) {
-    const hex = hslStringToHex(raw);
-    return hex ?? raw;
-  }
-  if (raw.startsWith("rgb")) {
-    const hex = rgbStringToHex(raw);
-    return hex ?? raw;
-  }
-  return raw;
-}
-
-function hslStringToHex(input: string): string | null {
-  // Supports CSS Color Level 4 space-separated hsl: hsl(H S% L% / A?) and comma form
-  const re = /hsl\(\s*([\d.]+)\s*(?:,\s*|\s+)\s*([\d.]+)%\s*(?:,\s*|\s+)\s*([\d.]+)%/i;
-  const m = input.match(re);
-  if (!m) return null;
-  const h = Number(m[1]);
-  const s = Number(m[2]) / 100;
-  const l = Number(m[3]) / 100;
-  const c = (1 - Math.abs(2 * l - 1)) * s;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m0 = l - c / 2;
-  let r = 0, g = 0, b = 0;
-  if (0 <= h && h < 60) { r = c; g = x; b = 0; }
-  else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
-  else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
-  else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
-  else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
-  else { r = c; g = 0; b = x; }
-  const to255 = (n: number) => Math.round((n + m0) * 255);
-  return rgbToHex(to255(r), to255(g), to255(b));
-}
-
-function rgbStringToHex(input: string): string | null {
-  // Supports rgb(R G B) or rgb(R, G, B)
-  const re = /rgb\(\s*(\d{1,3})\s*(?:,\s*|\s+)\s*(\d{1,3})\s*(?:,\s*|\s+)\s*(\d{1,3})/i;
-  const m = input.match(re);
-  if (!m) return null;
-  const r = Math.max(0, Math.min(255, Number(m[1])));
-  const g = Math.max(0, Math.min(255, Number(m[2])));
-  const b = Math.max(0, Math.min(255, Number(m[3])));
-  return rgbToHex(r, g, b);
-}
-
-function rgbToHex(r: number, g: number, b: number): string {
-  const toHex = (n: number) => n.toString(16).padStart(2, "0");
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
 
