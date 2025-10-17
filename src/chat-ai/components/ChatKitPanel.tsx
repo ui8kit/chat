@@ -38,6 +38,9 @@ const isBrowser = typeof window !== "undefined";
 const isDev = import.meta.env.DEV;
 const CHATKIT_CDN_SRC =
   "https://cdn.platform.openai.com/deployments/chatkit/chatkit.js";
+const CHATKIT_SCRIPT_SRC = import.meta.env.PROD
+  ? "/api/chatkit.js"
+  : CHATKIT_CDN_SRC;
 
 const createInitialErrors = (): ErrorState => ({
   script: null,
@@ -114,12 +117,12 @@ export function ChatKitPanel({
       const head = document.head || document.getElementsByTagName("head")[0];
       const hasElement = Boolean((window as typeof window & { customElements?: CustomElementRegistry }).customElements?.get("openai-chatkit"));
       const existingScript = (document.querySelector(
-        '#chatkit-loader, script[src="' + CHATKIT_CDN_SRC + '"]'
+        '#chatkit-loader, script[src="' + CHATKIT_SCRIPT_SRC + '"]'
       ) as HTMLScriptElement | null) ?? null;
       if (!hasElement && !existingScript) {
         const s = document.createElement("script");
         s.id = "chatkit-loader";
-        s.src = CHATKIT_CDN_SRC;
+        s.src = CHATKIT_SCRIPT_SRC;
         s.async = true;
         s.addEventListener("load", handleLoaded);
         s.addEventListener("error", handleError as EventListener);
